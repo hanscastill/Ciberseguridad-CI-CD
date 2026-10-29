@@ -4,36 +4,50 @@ stages:
   - test
   - deploy
 
+# ETAPA 1: BUILD
 build_job:
   stage: build
   image: alpine:3.20
   script:
-    - echo "Preparando artefactos del proyecto..."
+    - echo "Iniciando construccion del proyecto..."
+    - test -f README.md
     - mkdir -p dist
     - cp README.md dist/README.md
-    - echo "Preparacion completada"
+    - test -s dist/README.md
+    - echo "Construccion completada correctamente"
   artifacts:
+    name: "artefactos-ciberseguridad"
     paths:
       - dist/
     expire_in: 1 week
 
+# ETAPA 2: TEST
 test_job:
   stage: test
   image: alpine:3.20
+  needs:
+    - job: build_job
+      artifacts: true
   script:
-    - echo "Ejecutando pruebas de integridad..."
+    - echo "Iniciando pruebas de integridad..."
     - test -f dist/README.md
     - test -s dist/README.md
     - grep -q "Ciberseguridad" dist/README.md
-    - echo "Pruebas de integridad exitosas"
+    - echo "Todas las pruebas de integridad fueron exitosas"
 
+# ETAPA 3: DEPLOY
 deploy_job:
   stage: deploy
   image: alpine:3.20
+  needs:
+    - job: build_job
+      artifacts: true
+    - job: test_job
   script:
     - echo "Iniciando simulacion de despliegue..."
     - test -f dist/README.md
-    - echo "Despliegue simulado exitosamente"
+    - test -s dist/README.md
+    - echo "Despliegue simulado correctamente"
   environment:
     name: production
   rules:
