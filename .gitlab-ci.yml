@@ -1,0 +1,40 @@
+
+stages:
+  - build
+  - test
+  - deploy
+
+build_job:
+  stage: build
+  image: alpine:3.20
+  script:
+    - echo "Preparando artefactos del proyecto..."
+    - mkdir -p dist
+    - cp README.md dist/README.md
+    - echo "Preparacion completada"
+  artifacts:
+    paths:
+      - dist/
+    expire_in: 1 week
+
+test_job:
+  stage: test
+  image: alpine:3.20
+  script:
+    - echo "Ejecutando pruebas de integridad..."
+    - test -f dist/README.md
+    - test -s dist/README.md
+    - grep -q "Ciberseguridad" dist/README.md
+    - echo "Pruebas de integridad exitosas"
+
+deploy_job:
+  stage: deploy
+  image: alpine:3.20
+  script:
+    - echo "Iniciando simulacion de despliegue..."
+    - test -f dist/README.md
+    - echo "Despliegue simulado exitosamente"
+  environment:
+    name: production
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
